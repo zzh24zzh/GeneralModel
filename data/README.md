@@ -9,6 +9,19 @@ bamCoverage --bam [BAM_FILE] -o [OUTPUT_BIGWIG_FILE] --outFileFormat bigwig --no
 
 ## RNA-seq, CAGE-seq, Bru-seq, BruUV-seq, BruChase-seq, GRO-seq, GRO-cap, TT-seq, PRO-seq, PRO-cap, STARR-seq, and NET-CAGE
 
+```
+cl='[CELL TYPE]'
+modal='[MODALITY]'
+# BAMFILE=${cl}_${modal}.bam
+
+bamCoverage --bam $BAMFILE -o ${cl}_${modal}.bigWig \
+      --outFileFormat bigwig --normalizeUsing RPGC \
+                --effectiveGenomeSize 2913022398 \
+                --binSize 1000 --numberOfProcessors 12 \
+                --blackListFileName black_list.bed
+python data_read.py --cl=${cl} --modal=${modal}
+```
+
 ## Micro-C and Intact Hi-C
 ### Dependencies
 * hic-straw (1.3.1)

@@ -6,6 +6,9 @@
 ```
 bamCoverage --bam [BAM_FILE] -o [OUTPUT_BIGWIG_FILE] --outFileFormat bigwig --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --Offset 1 --binSize 1 --numberOfProcessors 12 --blackListFileName black_list.bed
 ```
+
+## RNA-seq, CAGE-seq, Bru-seq, BruUV-seq, BruChase-seq, GRO-seq, GRO-cap, TT-seq, PRO-seq, PRO-cap, STARR-seq, and NET-CAGE
+
 ## Micro-C and Intact Hi-C
 ### Dependencies
 * hic-straw (1.3.1)

@@ -2,7 +2,7 @@ import pickle,h5py
 import numpy as np
 from scipy.sparse import load_npz
 import torch
-import os
+import os,gdown
 from scipy.stats import zscore
 from copy import deepcopy
 
@@ -320,3 +320,12 @@ def prepare_external_data(cell_dict):
         starr_data[cl]=load_external_starr(cl)
 
     return external_tf_data,tt_data,groseq_data,grocap_data,proseq_data,netcage_data,starr_data
+
+
+def download_refseq_hg38():
+    if not os.path.exists('refSeq'):
+        os.mkdir('refSeq')
+    gdown.download('https://drive.google.com/uc?id=1iqOKKNFwjl9hMZovxxhG-t_Y1MZw45R0',
+                   output='refSeq/hg38.tar.gz')
+    os.system('tar -xvf refSeq/hg38.tar.gz -C refSeq/')
+    os.remove('refSeq/hg38.tar.gz')

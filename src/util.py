@@ -26,6 +26,7 @@ def pad_seq_matrix(matrix, pad_len=300):
 def load_ref_genome(chr):
     ref_path = 'refSeq/hg38/'
     ref_file = os.path.join(ref_path, 'chr%s.npz' % chr)
+    ref_file= os.path.abspath(ref_file)
     ref_gen_data = load_npz(ref_file).toarray().reshape(4, -1, 1000).swapaxes(0, 1)
     return torch.tensor(pad_seq_matrix(ref_gen_data))
 

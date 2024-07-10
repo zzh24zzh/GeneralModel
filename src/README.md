@@ -9,3 +9,10 @@ from util import download_refseq_hg38
 
 download_refseq_hg38()
 ```
+
+
+### Process input ATAC-seq
+
+```
+python atac_process.py [BIGWIG_FILE]
+```

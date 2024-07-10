@@ -39,7 +39,7 @@ merge_atac(cells)
 
 
 ### RNA-seq, CAGE-seq, Bru-seq, BruUV-seq, BruChase-seq, GRO-seq, GRO-cap, TT-seq, PRO-seq, PRO-cap, STARR-seq, and NET-CAGE
-
+For scripts of alignment, please refer to the `AlignScript/` directory.
 ```
 cl='[CELL TYPE]'
 modal='[MODALITY]'

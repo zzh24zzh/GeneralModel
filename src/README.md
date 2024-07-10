@@ -1,5 +1,8 @@
-### Download processed input reference sequence
-#### Dependencies
+# Data Processing and Training
+
+## Download processed input reference sequence
+
+### Dependencies
 *  gdown (5.1.0)
 
 ```
@@ -9,8 +12,9 @@ download_refseq_hg38()
 ```
 
 
-### Process input ATAC-seq
-#### Dependencies
+## Process input ATAC-seq
+
+### Dependencies
 * deeptools (3.5.1)
 
 Download the ATAC-seq bam files or align raw sequencing reads using ENCODE ATAC-seq pipeline
@@ -38,7 +42,8 @@ merge_atac(cells)
 
 
 
-### RNA-seq, CAGE-seq, Bru-seq, BruUV-seq, BruChase-seq, GRO-seq, GRO-cap, TT-seq, PRO-seq, PRO-cap, STARR-seq, and NET-CAGE
+## RNA-seq, CAGE-seq, Bru-seq, BruUV-seq, BruChase-seq, GRO-seq, GRO-cap, TT-seq, PRO-seq, PRO-cap, STARR-seq, and NET-CAGE
+
 For scripts of alignment, please refer to the `AlignScript/` directory.
 ```
 cl='[CELL TYPE]'
@@ -53,7 +58,8 @@ bamCoverage --bam $BAMFILE -o ${cl}_${modal}.bigWig \
 python data_read.py --cl=${cl} --modal=${modal}
 ```
 
-### Micro-C and Intact Hi-C
+## Micro-C and Intact Hi-C
+
 #### Dependencies
 * hic-straw (1.3.1)
   

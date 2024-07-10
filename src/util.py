@@ -1,6 +1,6 @@
 import pickle,h5py
 import numpy as np
-from scipy.sparse import load_npz
+from scipy.sparse import load_npz,csr_matrix
 import torch
 import os,gdown
 from scipy.stats import zscore
@@ -24,8 +24,7 @@ def pad_seq_matrix(matrix, pad_len=300):
     return np.concatenate((dmatrix, matrix, umatrix), axis=2)
 
 def load_ref_genome(chr):
-
-    ref_path = '/nfs/turbo/umms-drjieliu/usr/zzh/KGbert/3D/data/ref_genome/'
+    ref_path = 'refSeq/hg38/'
     ref_file = os.path.join(ref_path, 'chr%s.npz' % chr)
     ref_gen_data = load_npz(ref_file).toarray().reshape(4, -1, 1000).swapaxes(0, 1)
     return torch.tensor(pad_seq_matrix(ref_gen_data))
@@ -234,6 +233,7 @@ def load_grocap(cl):
     grocap_tap_rev_file = groseq_path+'rev_%s_grocap_wTAP_seq_cov.h5' % cl
     with h5py.File(grocap_tap_rev_file, 'r') as hf:
         grocap_tap_rev_data = normalize_rna(np.array(hf['targets']).astype('float32'))
+
     return torch.cat((grocap_fwd_data,grocap_rev_data,grocap_tap_fwd_data,grocap_tap_rev_data),dim=-1)
 
 def load_ttseq(cl):
@@ -299,6 +299,16 @@ def load_external_starr(cl):
     return starr_data
 
 
+def load_rna_strand(cl,alpha=2):
+    input_data={}
+    with open('/nfs/turbo/umms-drjieliu/usr/zzh/mutimodal_epcot/atac_bw/rna/norm_%s_fwd_1kb.pickle'%cl,'rb') as f:
+        fwd_data=pickle.load(f)
+    with open('/nfs/turbo/umms-drjieliu/usr/zzh/mutimodal_epcot/atac_bw/rna/norm_%s_rev_1kb.pickle'%cl,'rb') as f:
+        rev_data=pickle.load(f)
+    for chrom in range(1,23):
+        input_data[chrom]= alpha*torch.tensor(np.vstack((fwd_data[chrom],rev_data[chrom])))
+    return input_data
+
 def prepare_external_data(cell_dict):
     external_tf_data={}
     tt_data,groseq_data,grocap_data,proseq_data,starr_data,netcage_data={}, {}, {}, {},{},{}
@@ -329,3 +339,17 @@ def download_refseq_hg38():
                    output='refSeq/hg38.tar.gz')
     os.system('tar -xvf refSeq/hg38.tar.gz -C refSeq/')
     os.remove('refSeq/hg38.tar.gz')
+
+def merge_atac(cells: list):
+    atac_data={}
+    for cl in cells:
+        atac_data[cl]={}
+        with open('%s_atac.pickle'%cl, 'rb') as f:
+            atacseq = pickle.load(f)
+
+        for chr in range(1, 23):
+            tmp=load_dnase(atacseq[chr])
+            atac_data[cl][chr]=csr_matrix(tmp.squeeze()).astype('float16')
+    print(atac_data.keys())
+    with open('data/train_scatac_merge.pickle','wb') as f:
+        pickle.dump(atac_data,f)

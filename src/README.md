@@ -13,6 +13,7 @@ download_refseq_hg38()
 #### Dependencies
 * deeptools (3.5.1)
 
+Download the ATAC-seq bam files or align raw sequencing reads using ENCODE ATAC-seq pipeline
 ```
 cells=(A LIST of CELL/TISSUES)
 # e.g., cells=(GM12878 K562 H1)

@@ -1,4 +1,4 @@
-### Download reference genome sequence
+### Download processed input reference sequence
 
 
 #### Dependencies

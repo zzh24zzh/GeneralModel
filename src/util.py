@@ -37,7 +37,7 @@ def load_dnase(dnase_seq):
     return torch.tensor(dnase_seq)
 
 def load_bru(cl):
-    bru_path='/nfs/turbo/umms-drjieliu/proj/Bru-seq/data/'
+    bru_path='modality_data/'
     bruseq_file =bru_path+'%s_bru_seq_cov.h5'%cl
     with h5py.File(bruseq_file, 'r') as hf:
         bruseq_data = normalize_rna(np.array(hf['targets']).astype('float32'))
@@ -53,8 +53,8 @@ def load_bru(cl):
 
 def load_rna(cl):
     data_list=[]
-    cage_path='/nfs/turbo/umms-drjieliu/proj/CAGE-seq/data/'
-    rna_path='/nfs/turbo/umms-drjieliu/proj/RNA-seq/data/'
+    cage_path='modality_data/'
+    rna_path='modality_data/'
 
     cageseq_file ='%s_cage_seq_cov.h5'%cl
     if os.path.isfile(cage_path+cageseq_file):
@@ -78,7 +78,7 @@ def load_rna(cl):
     return rna_data
 
 def load_entex_rna(cl):
-    entex_trna_path='/nfs/turbo/umms-drjieliu/proj/EN-TEx/RNA-seq/data/'
+    entex_trna_path='modality_data/'
 
     trnaseq_file = entex_trna_path+'%s_trna_seq_cov.h5' % cl
     with h5py.File(trnaseq_file, 'r') as hf:
@@ -129,7 +129,7 @@ def load_chiapet(cl,target,chr):
 def prepare_train_full_data(cell_dict,train_cells,tissue_dict=None):
     assert cell_dict is not None or tissue_dict is not None
 
-    with open('/nfs/turbo/umms-drjieliu/usr/zzh/scEPCOT/pretrain/data/filter_label_masks_247_entex.pickle', 'rb') as f:
+    with open('data/epi_label_masks.pickle', 'rb') as f:
         temp_lmasks = pickle.load(f)
     ref_data = {}
 
@@ -205,7 +205,7 @@ def prepare_train_full_data(cell_dict,train_cells,tissue_dict=None):
            hic_data, ctcf_chiapet, polr2_chiapet,intacthic_oe_data,intacthic_kr_data
 
 def load_groseq(cl):
-    groseq_path='/nfs/turbo/umms-drjieliu/proj/GRO-seq-cap/data/'
+    groseq_path='modality_data/'
 
     groseq_fwd_file = groseq_path+'%s_groseq_fwd_seq_cov.h5' % cl
     with h5py.File(groseq_fwd_file, 'r') as hf:
@@ -217,7 +217,7 @@ def load_groseq(cl):
     return torch.cat((groseq_fwd_data,groseq_rev_data),dim=-1)
 
 def load_grocap(cl):
-    groseq_path = '/nfs/turbo/umms-drjieliu/proj/GRO-seq-cap/data/'
+    groseq_path = 'modality_data/'
 
     grocap_fwd_file = groseq_path+'fwd_%s_grocap_seq_cov.h5' % cl
     with h5py.File(grocap_fwd_file, 'r') as hf:
@@ -238,7 +238,7 @@ def load_grocap(cl):
     return torch.cat((grocap_fwd_data,grocap_rev_data,grocap_tap_fwd_data,grocap_tap_rev_data),dim=-1)
 
 def load_ttseq(cl):
-    tt_path='/nfs/turbo/umms-drjieliu/proj/Pro-seq_TT-seq/data/'
+    tt_path='modality_data/'
     TT_fwd_file = tt_path+'%s_TT_fwd_seq_cov.h5' % cl
     with h5py.File(TT_fwd_file, 'r') as hf:
         TT_fwd_data = normalize_rna(np.array(hf['targets']).astype('float32'))
@@ -249,7 +249,7 @@ def load_ttseq(cl):
     return torch.cat((TT_fwd_data, TT_rev_data),dim=-1)
 
 def load_netcage(cl):
-    netcage_path='/nfs/turbo/umms-drjieliu/proj/NET-CAGE/data/'
+    netcage_path='modality_data/'
     netcage_fwd_file = netcage_path+'%s_netcage_fwd_seq_cov.h5' % cl
     with h5py.File(netcage_fwd_file, 'r') as hf:
         netcage_fwd_data = normalize_rna(np.array(hf['targets']).astype('float32'))
@@ -263,7 +263,7 @@ def load_netcage(cl):
 
 def load_proseq(cl):
     data_list = []
-    pro_path='/nfs/turbo/umms-drjieliu/proj/Pro-seq_TT-seq/data/'
+    pro_path='modality_data/'
 
     proseq_fwd_file = '%s_pro_fwd_seq_cov.h5' % cl
     proseq_rev_file = '%s_pro_rev_seq_cov.h5' % cl
@@ -302,9 +302,9 @@ def load_external_starr(cl):
 
 def load_rna_strand(cl,alpha=2):
     input_data={}
-    with open('/nfs/turbo/umms-drjieliu/usr/zzh/mutimodal_epcot/atac_bw/rna/norm_%s_fwd_1kb.pickle'%cl,'rb') as f:
+    with open('modality_data/norm_%s_fwd_1kb.pickle'%cl,'rb') as f:
         fwd_data=pickle.load(f)
-    with open('/nfs/turbo/umms-drjieliu/usr/zzh/mutimodal_epcot/atac_bw/rna/norm_%s_rev_1kb.pickle'%cl,'rb') as f:
+    with open('modality_data/norm_%s_rev_1kb.pickle'%cl,'rb') as f:
         rev_data=pickle.load(f)
     for chrom in range(1,23):
         input_data[chrom]= alpha*torch.tensor(np.vstack((fwd_data[chrom],rev_data[chrom])))

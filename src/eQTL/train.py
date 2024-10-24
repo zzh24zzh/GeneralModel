@@ -301,7 +301,6 @@ def main(gpu, args):
     torch.cuda.set_device(gpu)
     rank = gpu
 
-    # args = get_args()
 
 
     seed_value=args.seed+rank
@@ -320,19 +319,14 @@ def main(gpu, args):
 
     tissue_twod_rep_dic={}
     tissue_seq_rep_dic = {}
-    tissue_mircoc_score_dic = {}
-    tissue_hic_score_dic = {}
+
     for tissue in train_tissues:
-        # with open('rep_data/new_'+tissue+'_twod_rep.pickle','rb') as f:
-        #     tissue_twod_rep_dic[tissue]=pickle.load(f)
+
         with open('rep_data/'+tissue+'_twod_rep.pickle','rb') as f:
             tissue_twod_rep_dic[tissue]=pickle.load(f)
         with open('rep_data/'+tissue+'_seq_rep.pickle','rb') as f:
             tissue_seq_rep_dic[tissue]=pickle.load(f)
-        with open('rep_data/score_'+tissue+'_microc.pickle','rb') as f:
-            tissue_mircoc_score_dic[tissue]=pickle.load(f)
-        with open('rep_data/score_'+tissue+'_hic.pickle','rb') as f:
-            tissue_hic_score_dic[tissue]=pickle.load(f)
+
 
     model=build_local_model(args)
 
@@ -473,7 +467,6 @@ def main(gpu, args):
         tss_data_input=[]
         gene_type_data=[]
         inside_gene=[]
-        microc_scores,hic_scores=[],[]
         for i in range(input_sample_list.shape[0]):
             ref_allele, alt_allele = ref_alleles[i].T, alt_alleles[i].T
             ref_allele, alt_allele = remove_padded_values(ref_allele, pad_value=24), remove_padded_values(alt_allele,
@@ -505,22 +498,13 @@ def main(gpu, args):
             dist_data.append(np.abs(tss_loc - qtl_loc))
             if tissue_twod_rep_dic[train_tissues[cell_idx]].get(str(chrom) + '_' + str(qtl_loc_bin) + '_' + str(tss_loc_bin)) is not None:
                 twod_rep = tissue_twod_rep_dic[train_tissues[cell_idx]][str(chrom) + '_' + str(qtl_loc_bin) + '_' + str(tss_loc_bin)]
-                tmp_mscore = tissue_mircoc_score_dic[train_tissues[cell_idx]][
-                    str(chrom) + '_' + str(qtl_loc_bin) + '_' + str(tss_loc_bin)]
-                tmp_hscore = tissue_hic_score_dic[train_tissues[cell_idx]][
-                    str(chrom) + '_' + str(qtl_loc_bin) + '_' + str(tss_loc_bin)]
+
                 twod_rep_input.append(twod_rep)
             else:
                 global_input = prepare_global_model_inputs(chrom, global_input_start, global_input_end, cell_idx).cuda(gpu)
                 with torch.no_grad():
                     twoDrep, seq_reps, x_microc, x_intacthic = global_model(global_input)
                     twod_rep_input.append(twoDrep.cpu().data.detach()[:, qtl_bin_idx, tss_bin_idx, :].numpy())
-                    tmp_mscore = x_microc.cpu().data.detach().squeeze()[qtl_bin_idx, tss_bin_idx - 2:tss_bin_idx + 3,
-                                 :].unsqueeze(0).numpy().astype('float32')
-                    tmp_hscore = x_intacthic.cpu().data.detach().squeeze()[qtl_bin_idx,
-                                    tss_bin_idx - 2:tss_bin_idx + 3, :].unsqueeze(0).numpy().astype('float32')
-            microc_scores.append(tmp_mscore[:,1:-1,:].max(1))
-            hic_scores.append(tmp_hscore[:,1:-1,:].max(1))
 
 
             gene_type_data.append(genetype_idx)
@@ -532,8 +516,6 @@ def main(gpu, args):
         local_ref_data_input=torch.cat(local_ref_data_input,dim=0).cuda(gpu)
         local_alt_data_input = torch.cat(local_alt_data_input, dim=0).cuda(gpu)
         twod_rep_input= torch.tensor(np.concatenate(twod_rep_input)).float().cuda(gpu)
-        microc_scores=torch.tensor(np.concatenate(microc_scores)).float().cuda(gpu)
-        hic_scores = torch.tensor(np.concatenate(hic_scores)).float().cuda(gpu)
 
         tss_data_input = torch.cat(tss_data_input, dim=0).cuda(gpu)
         targets=torch.cat(targets, dim=0).cuda(gpu)
@@ -541,7 +523,7 @@ def main(gpu, args):
         gene_type_data=np.array(gene_type_data)
         inside_gene=np.array(inside_gene)
         return local_ref_data_input,local_alt_data_input,twod_rep_input,None,targets,dist_data,\
-               tss_data_input,gene_type_data,inside_gene,var_scores.float().cuda(gpu),microc_scores,hic_scores
+               tss_data_input,gene_type_data,inside_gene,var_scores.float().cuda(gpu)
 
 
     best_score=0
@@ -566,15 +548,14 @@ def main(gpu, args):
             tts = time.time()
 
             ref_local_input, alt_local_input, twodrep_input, seq_rep_input, label, dist_data, tss_data_input, \
-            gene_type_data, inside_gene, var_scores, microc_scores, hic_scores = model_inputs_outputs(training_data)
+            gene_type_data, inside_gene, var_scores = model_inputs_outputs(training_data)
             if args.twod:
                 if not args.var:
                     var_scores=None
                 qtl_logit= model(alt_local_input, ref_local_input, x_tss=tss_data_input,
                                               x_2d_rep=twodrep_input,
                                               x_seq_rep=seq_rep_input, gene_type=gene_type_data,
-                                              inside_gene=inside_gene, dist=dist_data, x_var=var_scores,
-                                              x_contact_score=microc_scores)
+                                              inside_gene=inside_gene, dist=dist_data, x_var=var_scores)
             else:
                 qtl_logit = model(alt_local_input, ref_local_input, x_tss=tss_data_input, x_2d_rep=None,dist=None)
 
@@ -613,7 +594,7 @@ def main(gpu, args):
             preds[cl], targets[cl],distance[cl]= [], [],[]
             for step, valid_data in enumerate(valid_loaders[cl]):
                 ref_local_input, alt_local_input, twodrep_input,seq_rep_input, label, dist_data, tss_data_input,\
-                gene_type_data,inside_gene, var_scores, microc_scores, hic_scores =model_inputs_outputs(valid_data)
+                gene_type_data,inside_gene, var_scores=model_inputs_outputs(valid_data)
 
                 with torch.no_grad():
                     if args.twod:
@@ -623,7 +604,7 @@ def main(gpu, args):
                                                       x_2d_rep=twodrep_input,
                                                       x_seq_rep=seq_rep_input, gene_type=gene_type_data,
                                                       inside_gene=inside_gene, dist=dist_data, x_var=var_scores,
-                                                      x_contact_score=microc_scores)
+                                        )
                     else:
                         qtl_logit = model(alt_local_input, ref_local_input, x_tss=tss_data_input, x_2d_rep=None,
                                           dist=None)
@@ -639,7 +620,7 @@ def main(gpu, args):
             preds[cl], targets[cl],distance[cl]= [], [],[]
             for step, testing_data in enumerate(test_loaders[cl]):
                 ref_local_input, alt_local_input, twodrep_input,seq_rep_input, label,dist_data,tss_data_input,\
-                gene_type_data,inside_gene,var_scores, microc_scores, hic_scores  = model_inputs_outputs(testing_data)
+                gene_type_data,inside_gene,var_scores= model_inputs_outputs(testing_data)
 
                 with torch.no_grad():
                     if args.twod:
@@ -649,7 +630,7 @@ def main(gpu, args):
                                                       x_2d_rep=twodrep_input,
                                                       x_seq_rep=seq_rep_input, gene_type=gene_type_data,
                                                       inside_gene=inside_gene, dist=dist_data, x_var=var_scores,
-                                                      x_contact_score=microc_scores)
+                                        )
                     else:
                         qtl_logit= model(alt_local_input, ref_local_input, x_tss=tss_data_input, x_2d_rep=None,
                                           dist=None)

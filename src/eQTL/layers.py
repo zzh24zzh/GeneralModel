@@ -265,8 +265,7 @@ class ClassifyModel(nn.Module):
         self.local_classifier = nn.Linear(mid_dim, 1)
 
     def forward(self, x1, x2, x_tss=None, x_2d_rep=None,x_seq_rep=None,
-                dist=None, gene_type=None, inside_gene=None,x_var=None,
-                x_contact_score=None):
+                dist=None, gene_type=None, inside_gene=None,x_var=None):
         x1_fea1, x1_fea2, x1 = self.pretrain_model(x1)
         x1_fea1 = self.project_1(x1_fea1)
         x1_fea2 = self.project_2(x1_fea2)

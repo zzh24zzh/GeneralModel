@@ -319,7 +319,8 @@ def main():
                 tmp_atac_data[cell] = pickle.load(f)
 
     for chromosome in [i for i in range(1, 23)]:
-        ref_path = '/nfs/turbo/umms-drjieliu/usr/zzh/KGbert/3D/data/ref_genome/'
+        # ref_path = '/nfs/turbo/umms-drjieliu/usr/zzh/KGbert/3D/data/ref_genome/'
+        ref_path = '../refSeq/hg38/'
         ref_file = os.path.join(ref_path, 'chr%s.npz' % chromosome)
         if chromosome == 'X':
             reference_sequence[23] = load_npz(ref_file).toarray()
